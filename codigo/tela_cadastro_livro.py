@@ -1,5 +1,15 @@
-from tkinter import *
-from tkinter import ttk
+#-*- coding: utf-8 -*-
+
+try:
+    from Tkinter import *
+    import ttk
+    print("python 2x")
+
+except ImportError:
+    from tkinter import *
+    from tkinter import ttk
+    print("python 3x")
+
 
 
 #----------------------------------------------#
@@ -19,13 +29,8 @@ class LabelDefault(ttk.Label):
         ttk.Label.__init__(self, *args, **kwargs)
         
         default = Default()
-        style = ttk.Style()
-        style.configure(
-            "TLabel",
-            font = default.font,
-            background = default.background,
-            foreground = "white"
-        )
+        
+       
         self.configure(
             foreground = "white",
             background = default.background, 
@@ -73,9 +78,6 @@ class FrameEntry(Frame):
 class ButtonCategoria(ttk.Button):
     def __init__(self, *args, **kwargs):
         ttk.Button.__init__(self, *args, **kwargs)
-        
-        style = ttk.Style()
-        style.configure("TButton", font = (None, 12))
         self.pack(side = "left", fill = "x", expand = True, padx = 5)
 
 
@@ -84,15 +86,11 @@ class FrameCategoria(Frame):
         Frame.__init__(self, parent,  *args, **kwargs),0
         
         default = Default()
-        style = ttk.Style()
-        style.configure("Categoria.Treeview", font = (None, 12), rowheight = 25)
-        style.configure("Categoria.Treeview.Heading", font = (None, 11, "bold"))
         self.configure(
-            height = 250,
             background = default.background
         )
         
-        self.tree = ttk.Treeview(self, style = "Categoria.Treeview")
+        self.tree = ttk.Treeview(self)
         scroll = Scrollbar(self, command = self.tree.yview)
         self.tree.configure(yscrollcommand = scroll.set)
         
@@ -100,11 +98,11 @@ class FrameCategoria(Frame):
         self.tree.heading("categorias", text = "Categorias")
         self.tree.column("#0", width = 0, stretch = False)
         
-        self.pack(fill = "x", padx = 5, pady = 5)
+        self.pack(fill = "both", expand = True, padx = 5, pady = 5)
         self.pack_propagate(False)
         self.tree.pack(side = "left", fill = "both", expand = True)
         scroll.pack(side = "left", fill = "y")
-    
+
     def getCategoriaItem(self, categoria):
         #retornar o item de uma categoria de self.tree
         for item in self.tree.get_children(""):
@@ -166,9 +164,6 @@ class TelaCadastroLivro(Toplevel):
         self.title("Toplevel")
         self.geometry("{}+550+20".format(default.geometry))
         self.configure(background = default.background)
-       
-        style = ttk.Style()
-        style.configure("TButton", font = (None, 12))
         
         #criandos os widgets
         self.frameTitulo = FrameEntry(self, "Título")
@@ -194,6 +189,7 @@ class TelaCadastroLivro(Toplevel):
         print("Cadastro")
         print(self.getValues())
 
+
 class TelaAtualizarLivro(TelaCadastroLivro):
     def __init__(self, parent, *args, **kwargs):
         TelaCadastroLivro.__init__(self, parent, *args, **kwargs)
@@ -205,15 +201,85 @@ class TelaAtualizarLivro(TelaCadastroLivro):
     def buttonClick(self):
         print("Atualizar")
         print(self.getValues())
+
+class TelaLivro(Frame):
+    def __init__(self, parent, *args, **kwargs):
+        Frame.__init__(self, parent, *args, **kwargs)
+
+        #cor de fundo
+        default = Default()
+        self.configure(
+            background = default.background
+        )
     
+        #instanciando os widgets
+        self.criarTree()
+
+        #chamando o método pack no momento da criação.
+        self.pack(fill = "both", expand = True, padx = 5, pady = 5)
+        self.pack_propagate(False)
+
+    def criarTree(self):
+
+        frame = Frame(self)
+        self.tree = ttk.Treeview(frame)
+        scrollX = Scrollbar(frame, command = self.tree.xview, orient = "horizont", width = 16 )
+        scrollY = Scrollbar(frame, command = self.tree.yview, orient = "vertical", width = 16)
+        self.tree.configure(
+            xscrollcommand = scrollX.set,
+            yscrollcommand = scrollY.set
+        )
+
+        self.tree["columns"] = ("idlivro", "titulo", "autor", "paginas", "categoria", "disponibilidade")
+        self.tree.heading("idlivro", text = "id")
+        self.tree.heading("titulo", text = "Título")
+        self.tree.heading("autor", text = "Autor")
+        self.tree.heading("paginas", text = "Páginas")
+        self.tree.heading("categoria", text = "Categoria")
+        self.tree.heading("disponibilidade", text = "Disponibilidade")
+
+        self.tree.column("#0", width = 0, stretch = False)
+        self.tree.column("idlivro", width = 50, minwidth = 50, stretch = False)
+        self.tree.column("titulo", width  = 550, minwidth = 250)
+        self.tree.column("autor", width = 250, minwidth = 150)
+        self.tree.column("paginas", width = 100, minwidth = 100)
+        self.tree.column("categoria", width = 250, minwidth = 250)
+        self.tree.column("disponibilidade", minwidth = 100)
+
+        self.tree.tag_configure('disponivel', background = "green")
+        self.tree.tag_configure("naodisponivel", background = "red")
+
+        frame.pack(fill = "both", expand = True)
+        frame.pack_propagate(False)
+        scrollX.pack(side = "bottom", fill = "x")
+        self.tree.pack(side = "left", fill = "both", expand = True)
+        scrollY.pack(side = "left", fill = "y")
+
+        self.tree.insert("", "end", values = (1 , "herry poter", "j.k rowling", 433, "fantasia", "Sim"), tag = 'disponivel')
+        self.tree.insert("", "end", values = (2 , "herry poter", "j.k rowling", 433, "fantasia", "Não"), tag = 'naodisponivel')
+
+        self.tree.item(self.tree.get_children("")[0], tag = "disponivel")
 #----------------------------------------------#        
         
 
 def main():
     root = Tk()
-    root.geometry("500x500+0+0")
+    root.geometry("1500x500+0+0")
+
+    default = Default()
+    style = ttk.Style()
+    style.configure("Treeview", font = (None, 14, "bold"), rowheight = 25)
+    style.configure("Treeview.Heading", font = (None, 16, "bold"))
+    style.configure(
+            "TLabel",
+            font = default.font,
+            background = default.background,
+            foreground = "white"
+        )
+    style.configure("TButton", font = (None, 12))
     
-    tela = TelaAtualizarLivro(root)
+    tela = TelaLivro(root)
+    #tela = TelaCadastroLivro(root)
     
     root.mainloop()
 
