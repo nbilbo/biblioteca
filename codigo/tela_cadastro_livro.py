@@ -90,6 +90,7 @@ class FrameCategoria(Frame):
             background = default.background
         )
         
+        #criando os widgets
         self.tree = ttk.Treeview(self)
         scroll = Scrollbar(self, command = self.tree.yview)
         self.tree.configure(yscrollcommand = scroll.set)
@@ -98,10 +99,17 @@ class FrameCategoria(Frame):
         self.tree.heading("categorias", text = "Categorias")
         self.tree.column("#0", width = 0, stretch = False)
         
+        #posicionando
         self.pack(fill = "both", expand = True, padx = 5, pady = 5)
         self.pack_propagate(False)
         self.tree.pack(side = "left", fill = "both", expand = True)
         scroll.pack(side = "left", fill = "y")
+
+        #comandos
+
+        #-testes-#
+       
+        #-fim testes-#
 
     def getCategoriaItem(self, categoria):
         #retornar o item de uma categoria de self.tree
@@ -127,6 +135,8 @@ class FrameCategoria(Frame):
         #retornar os valores que estão selecionados na coluna categoria
         values = [self.tree.item(categoria)["values"][0] for categoria in self.tree.selection()]
         return values
+    
+
         
 class FrameDisponibilidade(Frame):
     def __init__(self, parent, *args, **kwargs):
@@ -161,7 +171,7 @@ class TelaCadastroLivro(Toplevel):
         Toplevel.__init__(self, *args, **kwargs)
         
         default = Default()
-        self.title("Toplevel")
+        self.title("Toplevel novo livro")
         self.geometry("{}+550+20".format(default.geometry))
         self.configure(background = default.background)
         
@@ -193,7 +203,7 @@ class TelaCadastroLivro(Toplevel):
 class TelaAtualizarLivro(TelaCadastroLivro):
     def __init__(self, parent, *args, **kwargs):
         TelaCadastroLivro.__init__(self, parent, *args, **kwargs)
-        
+        self.title("Toplevel atualizar")
         self.button.configure(
             text = "Atualizar"
         )
@@ -214,6 +224,7 @@ class TelaLivro(Frame):
     
         #instanciando os widgets
         self.criarTree()
+        self.criarButton(default)
 
         #chamando o método pack no momento da criação.
         self.pack(fill = "both", expand = True, padx = 5, pady = 5)
@@ -240,11 +251,11 @@ class TelaLivro(Frame):
 
         self.tree.column("#0", width = 0, stretch = False)
         self.tree.column("idlivro", width = 50, minwidth = 50, stretch = False)
-        self.tree.column("titulo", width  = 550, minwidth = 250)
-        self.tree.column("autor", width = 250, minwidth = 150)
-        self.tree.column("paginas", width = 100, minwidth = 100)
-        self.tree.column("categoria", width = 250, minwidth = 250)
-        self.tree.column("disponibilidade", minwidth = 100)
+        self.tree.column("titulo", width  = 350)
+        self.tree.column("autor", width = 250)
+        self.tree.column("paginas", width = 100)
+        self.tree.column("categoria", width = 150)
+        self.tree.column("disponibilidade", width = 200, minwidth = 150)
 
         self.tree.tag_configure('disponivel', background = "green")
         self.tree.tag_configure("naodisponivel", background = "red")
@@ -255,20 +266,66 @@ class TelaLivro(Frame):
         self.tree.pack(side = "left", fill = "both", expand = True)
         scrollY.pack(side = "left", fill = "y")
 
+        #--apenas p/ testes--#
         self.tree.insert("", "end", values = (1 , "herry poter", "j.k rowling", 433, "fantasia", "Sim"), tag = 'disponivel')
         self.tree.insert("", "end", values = (2 , "herry poter", "j.k rowling", 433, "fantasia", "Não"), tag = 'naodisponivel')
+        #--------------------#
+    
+    def criarButton(self, instancia_de_default):
+        frame = Frame(self)
+        frame.configure(
+            background = instancia_de_default.background
+        )
+        buttonAdd = ttk.Button(frame, text = "+", width = 10)
+        buttonRemove = ttk.Button(frame, text = "-", width = 10)
 
-        self.tree.item(self.tree.get_children("")[0], tag = "disponivel")
+        frame.pack(fill = "x", padx = 5, pady = 5)
+        buttonAdd.pack(side = "left", padx = 1, pady = 1)
+        buttonRemove.pack(side = "right", padx = 1, pady = 1)
+        
+        #comandos
+        buttonAdd["command"] = lambda: self.abrirFormularioNovoLivro()
+        buttonRemove["command"] = lambda: self.removerLivro()
+        self.tree.bind("<Double-Button-1>", lambda event: self.abrirFormularioAtualizarLivro(event))
+    
+    def abrirFormularioNovoLivro(self):
+        TelaCadastroLivro(self)
+
+    def abrirFormularioAtualizarLivro(self, event):
+        itemSelecionado = self.tree.selection()
+        if itemSelecionado:
+            #obtendo os valores atuais 
+            itemSelecionado = self.tree.item(self.tree.selection()[0])
+            values = itemSelecionado["values"]
+            idlivro = values[0]
+            titulo = values[1]
+            autor = values[2]
+            paginas = values[3]
+            disponibilidade = {"Sim": 1, "Não": 0}[values[5]]
+
+            #instanciando TelaAtulizarLivro e definindo os valores dos campos
+            telaAtualizar = TelaAtualizarLivro(self)
+            telaAtualizar.frameTitulo.setEntry(titulo)
+            telaAtualizar.frameAutor.setEntry(autor)
+            telaAtualizar.framePaginas.setEntry(paginas)
+            telaAtualizar.frameDisponibilidade.intCheck.set(disponibilidade)
+
+    def removerLivro(self):
+        print("removerlivro chamado")
+
+        
 #----------------------------------------------#        
         
 
 def main():
     root = Tk()
-    root.geometry("1500x500+0+0")
+    print(root.tk.call('info', 'patchlevel'))
+    root.geometry("900x500+0+0")
 
     default = Default()
     style = ttk.Style()
-    style.configure("Treeview", font = (None, 14, "bold"), rowheight = 25)
+    style.theme_use("clam")
+    style.configure("Treeview", font = (None, 14, "bold"), rowheight = 25, fieldbackground = default.background)
     style.configure("Treeview.Heading", font = (None, 16, "bold"))
     style.configure(
             "TLabel",
@@ -276,7 +333,8 @@ def main():
             background = default.background,
             foreground = "white"
         )
-    style.configure("TButton", font = (None, 12))
+    style.configure("TButton", font = (None, 12, "bold"))
+  
     
     tela = TelaLivro(root)
     #tela = TelaCadastroLivro(root)
